@@ -1,10 +1,8 @@
 {
-  "buildCommand": "npm install && npm run build",
-  "outputDirectory": "dist/public",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://collabifyy-gg0g.onrender.com/api/$1"
+      "source": "/api/:match*",
+      "destination": "https://collabifyy-gg0g.onrender.com/api/:match*"
     },
     {
       "source": "/(.*)",
