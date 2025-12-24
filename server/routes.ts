@@ -4,9 +4,9 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
+import { sendWaitlistEmail } from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-
   // Setup Passport + Sessions + Google OAuth
   await setupAuth(app);
 
@@ -38,6 +38,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const waitlistEntry = await storage.createWaitlistEntry(validatedData);
+
+      // Sending waitlist acknowledgement mail
+      console.log("Attempting to send emil to: ", waitlistEntry.email);
+      sendWaitlistEmail({
+        email: waitlistEntry.email,
+        name: waitlistEntry.name,
+        userType: waitlistEntry.userType,
+      }).catch((err) => {
+        console.error("Failed to send waitlist email:", err);
+      });
+
       res.status(201).json(waitlistEntry);
     } catch (error) {
       if (error instanceof z.ZodError) {
