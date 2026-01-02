@@ -75,6 +75,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // -------------------------------
+  //  WAITLIST GET USER ENTRY
+  // -------------------------------
+  app.get("/api/waitlist/user", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const entry = await storage.getWaitlistEntryByUserId(userId);
+      if (!entry) {
+        return res.status(404).json({ message: "Waitlist entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      console.error("Error fetching user waitlist entry:", error);
+      res.status(500).json({ message: "Failed to fetch waitlist entry" });
+    }
+  });
+
+  // -------------------------------
+  //  USER STATS
+  // -------------------------------
+  app.get("/api/user/:id/stats", isAuthenticated, async (req, res) => {
+    try {
+      // Mock stats for now since we don't have this in schema yet
+      const stats = {
+        followers: Math.floor(Math.random() * 1000),
+        collabs: Math.floor(Math.random() * 50),
+      };
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

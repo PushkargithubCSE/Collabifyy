@@ -70,8 +70,7 @@ export default function WaitlistPage() {
       setSubmitted(true);
     },
     onError: (error: Error) => {
-      // 🚨 DEBUG ALERT ADDED HERE
-      alert("DEBUG ERROR: " + error.message);
+
       
       if (isUnauthorizedError(error)) {
         toast({
@@ -153,11 +152,11 @@ export default function WaitlistPage() {
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
                 <Button
-                  onClick={() => setLocation("/")}
+                  onClick={() => setLocation("/home")}
                   className="transition-transform duration-200 hover:scale-105 btn-shine"
                   data-testid="button-back-home"
                 >
-                  Back to Home
+                  Go to Home
                 </Button>
               </motion.div>
             </CardContent>

@@ -13,10 +13,11 @@ export interface IStorage {
   // User operations - required for Replit Auth
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // Waitlist operations
   createWaitlistEntry(entry: InsertWaitlist): Promise<Waitlist>;
   getWaitlistEntries(): Promise<Waitlist[]>;
+  getWaitlistEntryByUserId(userId: string): Promise<Waitlist | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -55,6 +56,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(waitlist)
       .orderBy(desc(waitlist.createdAt));
+  }
+
+  async getWaitlistEntryByUserId(userId: string): Promise<Waitlist | undefined> {
+    const [entry] = await db
+      .select()
+      .from(waitlist)
+      .where(eq(waitlist.userId, userId));
+    return entry;
   }
 }
 
