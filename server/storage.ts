@@ -3,14 +3,6 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
-<<<<<<< HEAD
-    getUser(id: string): Promise<User | undefined>;
-    getUserByEmail(email: string): Promise<User | undefined>;
-    createUser(user: InsertUser): Promise<User>;
-    createWaitlistEntry(entry: InsertWaitlist): Promise<Waitlist>;
-    getWaitlistEntryByEmail(email: string): Promise<Waitlist | undefined>;
-    getWaitlistEntryByUserId(userId: string): Promise<Waitlist | undefined>;
-=======
   // User operations - required for Replit Auth
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
@@ -19,7 +11,6 @@ export interface IStorage {
   createWaitlistEntry(entry: InsertWaitlist): Promise<Waitlist>;
   getWaitlistEntries(): Promise<Waitlist[]>;
   getWaitlistEntryByUserId(userId: string): Promise<Waitlist | undefined>;
->>>>>>> 5f3de75ab183b82d4bf537ba80012103526b0b2d
 }
 
 export class DatabaseStorage implements IStorage {
@@ -38,22 +29,6 @@ export class DatabaseStorage implements IStorage {
         return user;
     }
 
-<<<<<<< HEAD
-    async createWaitlistEntry(entry: InsertWaitlist): Promise<Waitlist> {
-        const [newItem] = await db.insert(waitlist).values(entry).returning();
-        return newItem;
-    }
-
-    async getWaitlistEntryByEmail(email: string): Promise<Waitlist | undefined> {
-        const [entry] = await db.select().from(waitlist).where(eq(waitlist.email, email));
-        return entry;
-    }
-
-    async getWaitlistEntryByUserId(userId: string): Promise<Waitlist | undefined> {
-        const [entry] = await db.select().from(waitlist).where(eq(waitlist.userId, userId));
-        return entry;
-    }
-=======
   async getWaitlistEntries(): Promise<Waitlist[]> {
     return await db
       .select()
@@ -68,7 +43,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(waitlist.userId, userId));
     return entry;
   }
->>>>>>> 5f3de75ab183b82d4bf537ba80012103526b0b2d
 }
 
 export const storage = new DatabaseStorage();
