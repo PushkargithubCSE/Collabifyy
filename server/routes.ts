@@ -55,5 +55,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ followers: 0, collabs: 0 });
     });
 
+    app.get("/api/login", (req, res) => {
+        const type = req.query.type || "creator";
+        const FRONTEND_URL =
+          process.env.FRONTEND_URL || "https://collabifyy-connect.vercel.app";
+      
+        res.redirect(`${FRONTEND_URL}/waitlist?type=${type}`);
+      });
+
     const httpServer = createServer(app);
     return httpServer }; 
