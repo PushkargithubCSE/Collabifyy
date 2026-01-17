@@ -5,6 +5,7 @@ import express, {
   Response,
   NextFunction,
 } from "express";
+import cors from "cors";
 
 import { registerRoutes } from "./routes";
 
@@ -22,23 +23,39 @@ export function log(message: string, source = "express") {
 export const app = express();
 
 // ⭐ IMPORTANT ⭐
-// Required for secure cookies behind a proxy (Render, ngrok)
+// Required for secure cookies behind a proxy (Render, Vercel, etc.)
 app.set("trust proxy", 1);
 
-declare module 'http' {
+/**
+ * ✅ CORS CONFIGURATION (CRITICAL)
+ * Allows frontend (Vercel) to send cookies to backend (Render)
+ */
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL, // e.g. https://collabifyy-connect.vercel.app
+    credentials: true,
+  })
+);
+
+declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
   }
 }
 
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  },
-}));
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 app.use(express.urlencoded({ extended: false }));
 
+/**
+ * Request logging middleware
+ */
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -73,10 +90,10 @@ app.use((req, res, next) => {
 export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
 ) {
-  // Register all routes (includes Google OAuth + Sessions)
+  // ✅ Register all routes (includes auth, sessions, APIs)
   const server = await registerRoutes(app);
 
-  // Error handling
+  // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -85,11 +102,11 @@ export default async function runApp(
     throw err;
   });
 
-  // Custom setup from caller
+  // Custom setup from caller (Vite in dev, etc.)
   await setup(app, server);
 
   // Start server
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(
     {
       port,
