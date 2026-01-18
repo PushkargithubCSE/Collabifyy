@@ -8,6 +8,7 @@ import express, {
 import cors from "cors";
 
 import { registerRoutes } from "./routes";
+import { setupAuth } from "./replitAuth"; // 🔥 MISSING IMPORT (CRITICAL)
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -22,17 +23,16 @@ export function log(message: string, source = "express") {
 
 export const app = express();
 
-// ⭐ IMPORTANT ⭐
-// Required for secure cookies behind a proxy (Render, Vercel, etc.)
+// Required for cookies behind proxy (Render / Vercel)
 app.set("trust proxy", 1);
 
 /**
- * ✅ CORS CONFIGURATION (CRITICAL)
- * Allows frontend (Vercel) to send cookies to backend (Render)
+ * ✅ CORS
+ * Dev safe config (strict prod me kar sakte ho)
  */
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, // e.g. https://collabifyy-connect.vercel.app
+    origin: true,          // 🔥 DEV FIX (prevents silent cookie issues)
     credentials: true,
   })
 );
@@ -59,28 +59,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
+      log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
     }
   });
 
@@ -90,31 +73,26 @@ app.use((req, res, next) => {
 export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
 ) {
-  // ✅ Register all routes (includes auth, sessions, APIs)
+  // 🔥 🔥 🔥 THIS WAS THE MAIN BUG
+  // Auth + sessions MUST be initialised BEFORE routes
+  setupAuth(app);
+
+  // Register API routes
   const server = await registerRoutes(app);
 
-  // Error handling middleware
+  // Error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
-    throw err;
   });
 
-  // Custom setup from caller (Vite in dev, etc.)
+  // Custom setup (Vite / dev tooling)
   await setup(app, server);
 
   // Start server
-  const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    }
-  );
+  const port = parseInt(process.env.PORT || "3000", 10);
+  server.listen(port, () => {
+    console.log(`Serving on port ${port}`);
+  });
 }
