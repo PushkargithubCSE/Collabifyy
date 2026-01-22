@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import postCampaignImage from "@assets/Post_campaign_insight_1764049705863.jpg";
+import postCampaignImage from "CollabifyyConnect\attached_assets\generated_images\modi.jpeg";
 import productWorkflowImage from "@assets/product_workflow_1764049705865.jpg";
 import aiAgentImage from "@assets/Live_ai_agent_1764049741207.jpg";
 
